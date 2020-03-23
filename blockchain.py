@@ -11,6 +11,10 @@ class BlockChain:
     def getgenesisblock(self):
         return Block(index=0, timestamp="00:00 20/3/2020", data="ICT1010", previous_hash="0")
 
+    # Get latest block
+    def getlatest(self):
+        return self.blocks[-1]
+
     # Generate new block and add to chain
     def addblock(self, data):
         timestamp = str(datetime.now().strftime("%H:%M %d/%m/%Y"))
@@ -18,8 +22,19 @@ class BlockChain:
                           data=data, previous_hash=self.blocks[len(self.blocks) - 1].hash)
         if self.isvalidnewblock(new_block=new_block,prev_block=self.blocks[len(self.blocks)-1]):
             self.blocks.append(new_block)
+            return True
         else:
             print("Unable to add block to chain")
+            return False
+
+    # add block to chain
+    def addblocktochain(self,new_block):
+        if self.isvalidnewblock(new_block=new_block,prev_block=self.blocks[len(self.blocks)-1]):
+            self.blocks.append(new_block)
+            return True
+        else:
+            print("Unable to add block to chain")
+            return False
 
     # Return size of current chain
     def length(self):
@@ -67,7 +82,7 @@ class BlockChain:
     # Replace current block chain with new block chain if old length < new length
     def replacechain(self,new_chain):
         if new_chain.verify(verbose=False) and new_chain.length() > self.length():
-            self.blocks = new_chain
+            self.blocks = new_chain.blocks
             print("Replaced current chain")
         else:
             print("Unable to replace chain")

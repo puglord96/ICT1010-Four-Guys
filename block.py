@@ -2,9 +2,9 @@ import copy
 import hashlib
 from datetime import datetime
 
-studentNames = ["Wong Kin Seong", "Koh Boon Kiat", "Alex Toh Jun Rong", "Wilson Neo Wei Feng"]
-blockArr = []  # list which is used to store each Block object
-currentTime = datetime.now().strftime("%H:%M %d/%m/%Y")
+# studentNames = ["Wong Kin Seong", "Koh Boon Kiat", "Alex Toh Jun Rong", "Wilson Neo Wei Feng"]
+# blockArr = []  # list which is used to store each Block object
+# currentTime = datetime.now().strftime("%H:%M %d/%m/%Y")
 
 
 # Class to create the block for the blockchain
@@ -12,13 +12,16 @@ class Block:
     # Constructor for block to take in parameters
     def __init__(self, index, timestamp, data, previous_hash):
         self.index = index
-        self.timestamp = str(timestamp)
+        self.timestamp = timestamp
         self.data = data
         self.previous_hash = previous_hash
-        self.text_to_hash = data + timestamp + str(index)  # concatenate the student name,timestamp and index for hashing
-        self.hash = calculatehash(self.text_to_hash)  # turns the hash value into a string
+        # concatenate the student name,timestamp and index for hashing
+        self.text_to_hash = data + timestamp + str(index)
+        # turns the hash value into a string
+        self.hash = calculatehash(self.text_to_hash)
 
-    # Function is used to convert the input into a sha-256 hash
+
+# Function is used to convert the input into a sha-256 hash
 def calculatehash(text):
     m = hashlib.sha256()  # sha256 is used for the hashing
     m.update(text.encode('utf-8'))
