@@ -19,23 +19,23 @@ try:
         user_action = input("Query or Add: ")
         user_input = user_action.split(' ')
         valid_input_flag = False
-        if user_input[0].lower() is "close" or user_input[0] is "exit":
+        if user_input[0].lower() == "close" or user_input[0] == "exit":
             exit_flag = True
         # If input is less than 2 e.g simply "query" which is unclear
         # Structure of query timestamp of block 5: query timestamp 5
-        elif user_input[0].lower() is "query" and len(user_input) >= 2:
+        elif user_input[0].lower() == "query" and len(user_input) >= 2:
             second_input = user_input[1]
-            if second_input is "all":
+            if second_input == "all":
                 valid_input_flag = True
                 sock.sendall(b"query all")
-            elif second_input is "latest":
+            elif second_input == "latest":
                 valid_input_flag = True
                 sock.sendall(b"query latest")
-            elif second_input is "timestamp" and len(user_input) == 3:
+            elif second_input == "timestamp" and len(user_input) == 3:
                 valid_input_flag = True
                 sock.sendall(user_action.encode())
         # Structure of add command: add I am new block
-        elif user_input[0].lower() is "add":
+        elif user_input[0].lower() == "add":
             data_string = user_action[3:]
             add_flag = block_chain.addblock(data=data_string)
             # if successfully added to blockchain, send out the new block
@@ -69,21 +69,30 @@ try:
             new_block_json = sock.recv(1024)
             new_block = json.loads(new_block_json)
             add_flag = block_chain.addblocktochain(new_block)
-            data_to_send = json.dumps(block_chain.getlatest())
+            if add_flag is True:
+                msg = b"add finish"
+            else:
+                msg = b"add fail"
             # Send client command to server
-            sock.sendall(b"add block")
-            # Send json string of new block
-            sock.sendall(data_to_send)
+            sock.sendall(msg)
+        elif "add finish" in received_string:
+            print("Successfully Sent new block")
+        elif "add fail" in received_string:
+            print("Fail in sending new block")
         elif "query all" in received_string:
             data_to_send = json.dumps(block_chain)
             sock.sendall(b"send all")
             sock.sendall(data_to_send)
         elif "query latest" in received_string:
-            data_to_send = json.dumps(block_chain.getlatest())
+            data_to_send = json.dumps(block_chain.getlatest())  # Convert latest block to json string and send
             sock.sendall(b"send latest")
             sock.sendall(data_to_send)
         elif "query timestamp" in received_string:
-            pass
+            block_no = received_string.split(" ")[2]
+            data_to_send = block_chain.timestamp(block_no=block_no).encode()  # retrieve timestamp and convert to bytes
+            sock.sendall(b"send timestamp")
+            sock.sendall(data_to_send)
+
 
 finally:
     print('Closing socket connection')

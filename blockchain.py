@@ -15,6 +15,13 @@ class BlockChain:
     def getlatest(self):
         return self.blocks[-1]
 
+    # Retrieve timestamp of block x
+    def timestamp(self, block_no):
+        if block_no > self.length()-1 or block_no < 0:
+            return "No such block exists"
+        else:
+            return self.blocks[block_no].timestamp
+
     # Generate new block and add to chain
     def addblock(self, data):
         timestamp = str(datetime.now().strftime("%H:%M %d/%m/%Y"))
