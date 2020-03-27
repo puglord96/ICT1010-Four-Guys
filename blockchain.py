@@ -1,5 +1,5 @@
 from block import *
-import datetime
+from datetime import datetime
 
 
 # Block chain synchronisation (Creation of the block chain)

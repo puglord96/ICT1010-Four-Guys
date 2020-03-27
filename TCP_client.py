@@ -14,6 +14,45 @@ exit_flag = False
 block_chain = BlockChain()
 max_buffer_size = 256000  # kernel receive buffer size of socket
 try:
+    #on connection, check latest block if equal
+    sock.sendall(b"query latest")
+    received_string = sock.recv(100).decode()
+    if "send latest" in received_string:
+        receivedlatestblock_json = sock.recv(1024)
+        receivedlatestblock = json.loads(receivedlatestblock_json)
+        #if not equal, query entire blockchain from connection
+        if receivedlatestblock.index != block_chain.getlatest().index or receivedlatestblock.hash != block_chain.getlatest().hash:
+            print("Discrepancy detected, synchronizing...")
+            sock.sendall(b"query all")
+            received_string = sock.recv(100).decode()
+            if "send all" in received_string:
+                #store received blockchain for manipulation
+                receivedblockchain_json = sock.recv(1024)
+                receivedblockchain = json.loads(receivedblockchain_json)
+            #transverse backwards for both received and current blockchain until a match
+            counterreceived = 0
+            countercurrent = 0
+            synchronized = 0
+            for i in range(len(receivedblockchain),0,-1):
+                counterreceived += 1;
+                for j in range(len(block_chain),0,-1):
+                    countercurrent += 1;
+                    #if match is found, take the longer blockchain as the current one
+                    if receivedblockchain[i].hash == block_chain[j].hash:
+                        if counterreceived > countercurrent:
+                            block_chain = receivedblockchain;
+                        else:
+                            updateothers = json.dumps(block_chain)
+                            sock.sendall(updateothers)
+                        synchronized = 1
+                        break
+            #if no match is found, print error message.
+            if synchronized == 0:
+                 print("Mismatching blockchain, aborting")
+        #else if indexes match and hash match
+        else:
+            print("Synchronized, proceeding with user input")
+
     # Loop until user request to exit or close connection
     while exit_flag is not True:
         user_action = input("Query or Add: ")

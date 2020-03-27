@@ -16,7 +16,7 @@ class Block:
         self.data = data
         self.previous_hash = previous_hash
         # concatenate the student name,timestamp and index for hashing
-        self.text_to_hash = data + timestamp + str(index)
+        self.text_to_hash = data + timestamp + str(index) + previous_hash
         # turns the hash value into a string
         self.hash = calculatehash(self.text_to_hash)
 
