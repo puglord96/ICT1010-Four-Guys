@@ -1,8 +1,6 @@
 import socket
 import sys
-from block import Block
 from blockchain import BlockChain
-import json
 import pickle
 
 # Create a TCP/IP Socket
@@ -44,6 +42,8 @@ try:
                                 if counterreceived > countercurrent:
                                     block_chain.replacechain(receivedblockchain)
                                     print("Replacing blockchain")
+                                elif counterreceived == countercurrent:
+                                    block_chain.blocks = receivedblockchain.blocks
                                 else:
                                     updateothers = pickle.dumps(block_chain)
                                     sock.sendall(b"update chain")
@@ -94,12 +94,6 @@ try:
         # Structure of query timestamp of block 5: query timestamp 5
         elif user_input[0].lower() == "query" and len(user_input) >= 2:
             second_input = user_input[1]
-            # if second_input == "all":
-            #     valid_input_flag = True
-            #     sock.sendall(b"query all")
-            # elif second_input == "latest":
-            #     valid_input_flag = True
-            #     sock.sendall(b"query latest")
             if second_input == "timestamp" and len(user_input) == 3:
                 valid_input_flag = True
                 sock.sendall(user_action.encode())
@@ -123,18 +117,6 @@ try:
             # Commands received should not be able to exceed 100 bytes
             # For this project assume block chain is small: within 256kb
             received_string = sock.recv(100).decode()
-            # if "send all" in received_string:
-            #     new_block_chain_json = sock.recv(max_buffer_size)
-            #     new_block_chain = pickle.loads(new_block_chain_json)
-            #     print("Received all blocks")
-            #     block_chain.replacechain(new_block_chain)
-            # # Latest block is only 1 block. Assume the block will not be very big
-            # elif "send latest" in received_string:
-            #     new_block_json = sock.recv(1024)
-            #     new_block = pickle.loads(new_block_json)
-            #     print("Received latest block")
-            #     print("Latest block data: " + new_block.data + " timestamp: " + new_block.timestamp)
-            # Timestamp is small in general so 256 bytes is more than enough
             if "send timestamp" in received_string:
                 received_timestamp = sock.recv(256).decode()
                 print("Received timestamp: " + received_timestamp)
@@ -152,21 +134,57 @@ try:
                 print("Successfully Sent new block")
             elif "add fail" in received_string:
                 print("Fail in sending new block")
-            # elif "query all" in received_string:
-            #     data_to_send = pickle.dumps(block_chain)
-            #     sock.sendall(b"send all")
-            #     sock.sendall(data_to_send)
-            # elif "query latest" in received_string:
-            #     data_to_send = pickle.dumps(block_chain.getlatest())  # Convert latest block to json string and send
-            #     sock.sendall(b"send latest")
-            #     sock.sendall(data_to_send)
-            # elif "query timestamp" in received_string:
-            #     block_no = received_string.split(" ")[2]
-            #     data_to_send = block_chain.timestamp(block_no=block_no).encode()  # retrieve timestamp and convert to bytes
-            #     sock.sendall(b"send timestamp")
-            #     sock.sendall(data_to_send)
-
-
+                print("Starting Synchronization")
+                sock.sendall(b"query latest")
+                received_string = sock.recv(100).decode()
+                if "send latest" in received_string:
+                    receivedlatestblock_bytes = sock.recv(1024)
+                    receivedlatestblock = pickle.loads(receivedlatestblock_bytes)
+                    # if not equal, query entire blockchain from connection
+                    if receivedlatestblock.index != block_chain.getlatest().index or receivedlatestblock.hash != block_chain.getlatest().hash:
+                        print("Discrepancy detected, synchronizing...")
+                        sock.sendall(b"query all")
+                        received_string = sock.recv(100).decode()
+                        if "send all" in received_string:
+                            # store received blockchain for manipulation
+                            receivedblockchain_bytes = sock.recv(max_buffer_size)
+                            receivedblockchain = pickle.loads(receivedblockchain_bytes)
+                            # transverse backwards for both received and current blockchain until a match
+                            counterreceived = 0
+                            countercurrent = 0
+                            synchronized = 0
+                            if receivedblockchain.length() == block_chain.length():
+                                for i in range(receivedblockchain.length() - 1, -1, -1):
+                                    counterreceived += 1;
+                                    for j in range(block_chain.length() - 1, -1, -1):
+                                        countercurrent += 1;
+                                        # if match is found, take the longer blockchain as the current one
+                                        if receivedblockchain.blocks[i].hash == block_chain.blocks[j].hash:
+                                            if counterreceived > countercurrent:
+                                                block_chain.replacechain(receivedblockchain)
+                                                print("Replacing blockchain")
+                                            elif counterreceived == countercurrent:
+                                                block_chain.blocks = receivedblockchain.blocks
+                                            else:
+                                                updateothers = pickle.dumps(block_chain)
+                                                sock.sendall(b"update chain")
+                                                sock.sendall(updateothers)
+                                            synchronized = 1
+                                            break
+                            elif receivedblockchain.length() > block_chain.length():
+                                block_chain.blocks = receivedblockchain.blocks
+                                synchronized = 1
+                            else:
+                                data_to_send = pickle.dumps(block_chain)
+                                sock.sendall(b"update chain")
+                                sock.sendall(data_to_send)
+                                synchronized = 1
+                            # if no match is found, print error message.
+                            if synchronized == 0:
+                                print("Mismatching blockchain, aborting")
+                            else:
+                                print("Synchronization ended")
+                                print(block_chain.getlatest().data)
 finally:
     print('Closing socket connection')
     sock.close()

@@ -1,11 +1,4 @@
-import copy
 import hashlib
-from datetime import datetime
-
-# studentNames = ["Wong Kin Seong", "Koh Boon Kiat", "Alex Toh Jun Rong", "Wilson Neo Wei Feng"]
-# blockArr = []  # list which is used to store each Block object
-# currentTime = datetime.now().strftime("%H:%M %d/%m/%Y")
-
 
 # Class to create the block for the blockchain
 class Block:
@@ -27,16 +20,6 @@ def calculatehash(text):
     m.update(text.encode('utf-8'))
     return m.hexdigest()  # turns the hash value into a string
 
-#
-# # For loop to create block objects for the different student names
-# for i in range(len(studentNames)):
-#     if i == 0:
-#         b = Block(i, currentTime, studentNames[i], 0)  # if first block, make previousHash = 0
-#     else:
-#         b = Block(i, currentTime, studentNames[i], blockArr[i - 1].hash)
-#
-#     blockArr.append(b)  # append the generated block object into the blockArr array
-#
 
 
 
