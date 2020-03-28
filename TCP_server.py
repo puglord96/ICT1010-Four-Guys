@@ -34,7 +34,12 @@ def handle_connection(connection, client_address):
                 connection.sendall(data_to_send)
             if b"update chain" in data:
                 received_block_chain_bytes = connection.recv(max_buffer_size)
-                received_block_chain = pickle.loads(received_block_chain_bytes)
+                # append full bytes string
+                full_bytes = received_block_chain_bytes
+                while received_block_chain_bytes:
+                    received_block_chain_bytes = connection.recv(max_buffer_size)
+                    full_bytes += received_block_chain_bytes
+                received_block_chain = pickle.loads(full_bytes)
                 blockchain.blocks = received_block_chain.blocks
                 print("Replaced blockchain")
                 blockchain.print_all()
