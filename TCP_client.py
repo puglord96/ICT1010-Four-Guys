@@ -70,7 +70,8 @@ try:
 
     # Loop until user request to exit or close connection
     while exit_flag is not True:
-        user_action = input("Query/Add/Exit/List: ")
+        print("\n? for help")
+        user_action = input("Query/Add/List/Exit: ")
         user_input = user_action.split(' ')
         valid_input_flag = False
         list_flag = False
@@ -82,6 +83,13 @@ try:
             block_chain.print_all()
             valid_input_flag = True
             list_flag = True
+        elif user_input[0].lower() == "?":
+            list_flag = True
+            valid_input_flag = True
+            print("\nQuery timestamp X    [ Whereas X represents the block index                  ]")
+            print("Add example data     [ Whereas \"example data\" is the data to add for block   ]")
+            print("List                 [ List all contents of the current block chain          ]")
+            print("Exit                 [End connection                                         ]\n")
         # If input is less than 2 e.g simply "query" which is unclear
         # Structure of query timestamp of block 5: query timestamp 5
         elif user_input[0].lower() == "query" and len(user_input) >= 2:
