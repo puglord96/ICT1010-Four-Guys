@@ -3,13 +3,15 @@ import sys
 from block import Block
 from blockchain import BlockChain
 import json
+import pickle
 
 # Create a TCP/IP Socket
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 # Bind the socket to the port
 server_address = ('localhost', 10000)
 blockchain = BlockChain()
-blockchain.addblock("testingblock")
+blockchain.addblock("Assignment 2")
+max_buffer_size = 256000  # kernel receive buffer size of socket
 print('starting up on {} port {}'.format(*server_address))
 sock.bind(server_address)
 # Listen for incoming connections
@@ -25,14 +27,35 @@ while True:
             data = connection.recv(256)
             print('received {!r}'.format(data))
             if b"query latest" in data:
-                data_to_send = json.dumps(blockchain.getlatest())  # Convert latest block to json string and send
-                sock.sendall(b"send latest")
-                sock.sendall(data_to_send)
-            if data:
-                print('sending data back to the client')
-                connection.sendall(data)
-            else:
-                print('no data from', client_address)
+                data_to_send = pickle.dumps(blockchain.getlatest())  # Convert latest block to json string and send
+                connection.sendall(b"send latest")
+                connection.sendall(data_to_send)
+            if b"query all" in data:
+                data_to_send = pickle.dumps(blockchain)
+                connection.sendall(b"send all")
+                connection.sendall(data_to_send)
+            if b"update chain" in data:
+                received_block_chain_bytes = connection.recv(max_buffer_size)
+                received_block_chain = pickle.loads(received_block_chain_bytes)
+                blockchain.blocks = received_block_chain.blocks
+                print("Replaced blockchain")
+                blockchain.print_all()
+            if b"add block" in data:
+                received_block_bytes = connection.recv(1024)
+                received_block = pickle.loads(received_block_bytes)
+                add_flag = blockchain.addblocktochain(received_block)
+                if add_flag:
+                    print("Successfully added valid block")
+                    print("Data: " + blockchain.getlatest().data)
+                    connection.sendall(b"add finish")
+                else:
+                    print("New block is not valid")
+                    connection.sendall(b"add fail")
+            if b"query timestamp" in data:
+                requested_block_no = int(data.decode()[15:])
+                connection.sendall(b"send timestamp")
+                connection.sendall(blockchain.timestamp(requested_block_no).encode())
+            if b"connection close" in data:
                 break
     finally:
         # Clean up the connection

@@ -88,8 +88,15 @@ class BlockChain:
 
     # Replace current block chain with new block chain if old length < new length
     def replacechain(self,new_chain):
-        if new_chain.verify(verbose=False) and new_chain.length() > self.length():
+        if new_chain.verify(verbose=True) and new_chain.length() >= self.length():
             self.blocks = new_chain.blocks
             print("Replaced current chain")
         else:
             print("Unable to replace chain")
+
+    # Print all contents of all blocks
+    def print_all(self):
+        print("root->:", end=" ")
+        for i in self.blocks:
+            print(i.data + "->", end=" ")
+        print(":end")
