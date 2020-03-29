@@ -30,8 +30,8 @@ try:
                 # append full bytes string
                 full_bytes = receivedblockchain_bytes
                 while receivedblockchain_bytes:
-                    received_block_chain_bytes = sock.recv(max_buffer_size)
-                    full_bytes += received_block_chain_bytes
+                    receivedblockchain_bytes = sock.recv(max_buffer_size)
+                    full_bytes += receivedblockchain_bytes
                 receivedblockchain = pickle.loads(full_bytes)
                 #transverse backwards for both received and current blockchain until a match
                 counterreceived = 0
@@ -156,8 +156,8 @@ try:
                             # append full bytes string
                             full_bytes = receivedblockchain_bytes
                             while receivedblockchain_bytes:
-                                received_block_chain_bytes = sock.recv(max_buffer_size)
-                                full_bytes += received_block_chain_bytes
+                                receivedblockchain_bytes = sock.recv(max_buffer_size)
+                                full_bytes += receivedblockchain_bytes
                             receivedblockchain = pickle.loads(full_bytes)
                             # transverse backwards for both received and current blockchain until a match
                             counterreceived = 0
