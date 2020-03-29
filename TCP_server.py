@@ -32,6 +32,7 @@ def handle_connection(connection, client_address):
                 data_to_send = pickle.dumps(blockchain)
                 connection.sendall(b"send all")
                 connection.sendall(data_to_send)
+                connection.sendall(b"send end")
             if b"update chain" in data:
                 received_block_chain_bytes = connection.recv(max_buffer_size)
                 # append full bytes string

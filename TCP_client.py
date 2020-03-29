@@ -29,7 +29,8 @@ try:
                 receivedblockchain_bytes = sock.recv(max_buffer_size)
                 # append full bytes string
                 full_bytes = receivedblockchain_bytes
-                while receivedblockchain_bytes:
+                receivedblockchain_bytes = sock.recv(max_buffer_size)
+                while b"send end" not in receivedblockchain_bytes:
                     receivedblockchain_bytes = sock.recv(max_buffer_size)
                     full_bytes += receivedblockchain_bytes
                 receivedblockchain = pickle.loads(full_bytes)
@@ -155,7 +156,8 @@ try:
                             receivedblockchain_bytes = sock.recv(max_buffer_size)
                             # append full bytes string
                             full_bytes = receivedblockchain_bytes
-                            while receivedblockchain_bytes:
+                            receivedblockchain_bytes = sock.recv(max_buffer_size)
+                            while b"send end" not in receivedblockchain_bytes:
                                 receivedblockchain_bytes = sock.recv(max_buffer_size)
                                 full_bytes += receivedblockchain_bytes
                             receivedblockchain = pickle.loads(full_bytes)
